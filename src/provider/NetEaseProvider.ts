@@ -207,8 +207,8 @@ export class NetEaseProvider implements MusicProvider {
     return null;
   }
 
-  /** Add the song to the authenticated account; never toggle an existing like off. */
-  async likeSong(id: string): Promise<void> {
+  /** Set the authenticated account like state explicitly. */
+  async likeSong(id: string, like = true): Promise<void> {
     if (!this.workerURL || !this.cookie) throw new Error('请先配置网易云 Cookie 和新版 Worker');
     if (!/^\d+$/.test(id)) throw new Error('当前歌曲没有有效的网易云 ID');
     const response = await fetch(`${this.workerURL}/like`, {
@@ -216,7 +216,7 @@ export class NetEaseProvider implements MusicProvider {
       headers: {
         'X-Netease-Cookie': this.cookie,
         'X-Netease-Params': eapiEncrypt('/api/radio/like', {
-          alg: 'itembased', trackId: id, like: true, time: '3',
+          alg: 'itembased', trackId: id, like, time: '3',
         }),
       },
       signal: AbortSignal.timeout(15000),
@@ -224,9 +224,9 @@ export class NetEaseProvider implements MusicProvider {
     });
     if (response.status === 404) throw new Error('当前 Worker 不支持喜欢歌曲，请更新部署后重试');
     if (response.status === 401) throw new Error('网易云登录已失效，请更新 Cookie');
-    if (!response.ok) throw new Error('添加喜欢未成功，请稍后重试');
+    if (!response.ok) throw new Error(like ? '添加喜欢未成功，请稍后重试' : '取消喜欢未成功，请稍后重试');
     const result = await response.json();
-    if (result.success !== true) throw new Error('网易云未确认添加喜欢，请稍后重试');
+    if (result.success !== true) throw new Error('网易云未确认喜欢状态更新，请稍后重试');
   }
 
   async fetchPersonalFM(): Promise<SearchResult[]> {

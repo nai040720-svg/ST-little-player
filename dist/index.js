@@ -6546,28 +6546,28 @@ class en {
     }
     return H.warn('NetEase: no playable result for "' + n + '"'), null;
   }
-  /** Add the song to the authenticated account; never toggle an existing like off. */
-  async likeSong(t) {
+  /** Set the authenticated account like state explicitly. */
+  async likeSong(t, s = !0) {
     if (!this.workerURL || !this.cookie) throw new Error("请先配置网易云 Cookie 和新版 Worker");
     if (!/^\d+$/.test(t)) throw new Error("当前歌曲没有有效的网易云 ID");
-    const s = await fetch(`${this.workerURL}/like`, {
+    const n = await fetch(`${this.workerURL}/like`, {
       method: "POST",
       headers: {
         "X-Netease-Cookie": this.cookie,
         "X-Netease-Params": Ei("/api/radio/like", {
           alg: "itembased",
           trackId: t,
-          like: !0,
+          like: s,
           time: "3"
         })
       },
       signal: AbortSignal.timeout(15e3),
       cache: "no-store"
     });
-    if (s.status === 404) throw new Error("当前 Worker 不支持喜欢歌曲，请更新部署后重试");
-    if (s.status === 401) throw new Error("网易云登录已失效，请更新 Cookie");
-    if (!s.ok) throw new Error("添加喜欢未成功，请稍后重试");
-    if ((await s.json()).success !== !0) throw new Error("网易云未确认添加喜欢，请稍后重试");
+    if (n.status === 404) throw new Error("当前 Worker 不支持喜欢歌曲，请更新部署后重试");
+    if (n.status === 401) throw new Error("网易云登录已失效，请更新 Cookie");
+    if (!n.ok) throw new Error(s ? "添加喜欢未成功，请稍后重试" : "取消喜欢未成功，请稍后重试");
+    if ((await n.json()).success !== !0) throw new Error("网易云未确认喜欢状态更新，请稍后重试");
   }
   async fetchPersonalFM() {
     if (!this.workerURL || !this.cookie) throw new Error("请先配置网易云 Cookie 和新版 Worker");
@@ -8004,32 +8004,33 @@ const xf = ["width", "height"], Sf = {
       !e.compact && p(t).heartError ? (C(), P("span", th, M(p(t).heartError), 1)) : ve("", !0)
     ], 2));
   }
-}), Pl = /* @__PURE__ */ gt(sh, [["__scopeId", "data-v-c0930b4f"]]), nh = ["disabled", "title", "aria-label", "aria-busy"], ih = /* @__PURE__ */ pt({
+}), Pl = /* @__PURE__ */ gt(sh, [["__scopeId", "data-v-c0930b4f"]]), nh = ["disabled", "aria-pressed", "title", "aria-label", "aria-busy"], ih = /* @__PURE__ */ pt({
   __name: "LikeButton",
   setup(e) {
     const t = Ee(), s = Be(), n = ge(), i = /* @__PURE__ */ ye([]), o = /* @__PURE__ */ ye("");
     let r = 0;
-    const a = me(() => t.currentTrack?.source === "netease" ? t.currentTrack.providerTrackId ?? "" : ""), l = me(() => i.value.includes(a.value)), c = me(() => o.value === a.value && o.value ? "正在添加喜欢" : l.value ? "已添加到网易云喜欢列表" : "添加到网易云喜欢列表");
+    const a = me(() => t.currentTrack?.source === "netease" ? t.currentTrack.providerTrackId ?? "" : ""), l = me(() => i.value.includes(a.value)), c = me(() => o.value === a.value && o.value ? l.value ? "正在取消喜欢" : "正在添加喜欢" : l.value ? "取消网易云喜欢" : "添加到网易云喜欢列表");
     De(() => [n.settings.neteaseCookie, Ts(n.settings)], () => {
       r++, i.value = [], o.value = "";
     });
     async function d() {
-      if (!a.value || o.value || l.value) return;
-      const h = a.value, w = r;
+      if (!a.value || o.value) return;
+      const h = a.value, w = !l.value, k = r;
       o.value = h, s.heartError = "";
       try {
-        await new en({ workerURL: Ts(n.settings), cookie: n.settings.neteaseCookie }).likeSong(h), r === w && i.value.push(h);
-      } catch (k) {
-        r === w && (s.heartError = k instanceof Error ? k.message : "添加喜欢失败");
+        await new en({ workerURL: Ts(n.settings), cookie: n.settings.neteaseCookie }).likeSong(h, w), r === k && (i.value = i.value.filter((E) => E !== h), w && i.value.push(h));
+      } catch (E) {
+        r === k && (s.heartError = E instanceof Error ? E.message : "更新喜欢状态失败");
       } finally {
-        r === w && (o.value = "");
+        r === k && (o.value = "");
       }
     }
     return (h, w) => p(s).heartActive ? (C(), P("button", {
       key: 0,
       type: "button",
       class: ue(["stmp-like-btn", { liked: l.value }]),
-      disabled: !a.value || !!o.value || l.value,
+      disabled: !a.value || !!o.value,
+      "aria-pressed": l.value,
       title: c.value,
       "aria-label": c.value,
       "aria-busy": !!o.value,
@@ -8041,7 +8042,7 @@ const xf = ["width", "height"], Sf = {
       }, null, 8, ["name"])
     ], 10, nh)) : ve("", !0);
   }
-}), oh = /* @__PURE__ */ gt(ih, [["__scopeId", "data-v-419ee111"]]), rh = { class: "stmp-playlist" }, ah = { class: "stmp-main-view" }, lh = { class: "stmp-tabs" }, ch = ["onClick"], uh = { class: "stmp-queue-view" }, dh = {
+}), oh = /* @__PURE__ */ gt(ih, [["__scopeId", "data-v-c74555a5"]]), rh = { class: "stmp-playlist" }, ah = { class: "stmp-main-view" }, lh = { class: "stmp-tabs" }, ch = ["onClick"], uh = { class: "stmp-queue-view" }, dh = {
   key: 0,
   class: "stmp-upload-area"
 }, fh = ["disabled"], hh = {

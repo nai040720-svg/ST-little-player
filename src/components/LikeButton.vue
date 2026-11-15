@@ -12,23 +12,27 @@ let generation = 0;
 // Track the audio that is actually loaded, not the queue selection resolving next.
 const id = computed(() => player.currentTrack?.source === 'netease' ? player.currentTrack.providerTrackId ?? '' : '');
 const liked = computed(() => confirmed.value.includes(id.value));
-const label = computed(() => pending.value === id.value && pending.value ? '正在添加喜欢' : liked.value ? '已添加到网易云喜欢列表' : '添加到网易云喜欢列表');
+const label = computed(() => pending.value === id.value && pending.value ? (liked.value ? '正在取消喜欢' : '正在添加喜欢') : liked.value ? '取消网易云喜欢' : '添加到网易云喜欢列表');
 watch(() => [settings.settings.neteaseCookie, getNeteaseWorkerURL(settings.settings)], () => {
   generation++;
   confirmed.value = [];
   pending.value = '';
 });
 async function like(): Promise<void> {
-  if (!id.value || pending.value || liked.value) return;
+  if (!id.value || pending.value) return;
   const trackId = id.value;
+  const nextLiked = !liked.value;
   const requestGeneration = generation;
   pending.value = trackId;
   playlist.heartError = '';
   try {
-    await new NetEaseProvider({ workerURL: getNeteaseWorkerURL(settings.settings), cookie: settings.settings.neteaseCookie }).likeSong(trackId);
-    if (generation === requestGeneration) confirmed.value.push(trackId);
+    await new NetEaseProvider({ workerURL: getNeteaseWorkerURL(settings.settings), cookie: settings.settings.neteaseCookie }).likeSong(trackId, nextLiked);
+    if (generation === requestGeneration) {
+      confirmed.value = confirmed.value.filter(value => value !== trackId);
+      if (nextLiked) confirmed.value.push(trackId);
+    }
   } catch (error) {
-    if (generation === requestGeneration) playlist.heartError = error instanceof Error ? error.message : '添加喜欢失败';
+    if (generation === requestGeneration) playlist.heartError = error instanceof Error ? error.message : '更新喜欢状态失败';
   } finally {
     if (generation === requestGeneration) pending.value = '';
   }
@@ -36,7 +40,7 @@ async function like(): Promise<void> {
 </script>
 <template>
   <button v-if="playlist.heartActive" type="button" class="stmp-like-btn" :class="{ liked }"
-    :disabled="!id || !!pending || liked" :title="label" :aria-label="label"
+    :disabled="!id || !!pending" :aria-pressed="liked" :title="label" :aria-label="label"
     :aria-busy="!!pending" @click.stop="like">
     <Icon :name="liked ? 'heart' : 'heart-outline'" :size="18" />
   </button>

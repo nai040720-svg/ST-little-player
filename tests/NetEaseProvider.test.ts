@@ -106,6 +106,7 @@ describe('NetEaseProvider', () => {
     const p = new NetEaseProvider({ workerURL: 'https://w.test', cookie: 'c' });
     const track = await p.resolve('123');
     expect(track).toEqual({
+      providerTrackId: '123',
       url: 'http://a/x.mp3',
       lyric: '[00:00] lala',
       cover: 'http://a/cover.jpg',

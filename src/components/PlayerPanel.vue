@@ -5,6 +5,7 @@ import { useVerticalLyricScroll } from "@/composables/useVerticalLyricScroll";
 import type { PlayMode } from '@/types';
 import Icon from './Icon.vue';
 import HeartButton from './HeartButton.vue';
+import LikeButton from './LikeButton.vue';
 import PlaylistView from './PlaylistView.vue';
 import PlaylistDetail from './PlaylistDetail.vue';
 import SearchView from './SearchView.vue';
@@ -271,6 +272,7 @@ function playEntirePlaylist(): void {
 
       <!-- Volume (rightmost) -->
       <div class="stmp-ctrl-side stmp-volume-side">
+        <LikeButton />
         <div
           class="stmp-volume-container"
           @mouseenter="onVolumeEnter"

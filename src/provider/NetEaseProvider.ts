@@ -170,6 +170,7 @@ export class NetEaseProvider implements MusicProvider {
     const cover = detail?.cover || (_picId ? buildCoverUrl(_picId) : undefined);
 
     return {
+      providerTrackId: id,
       url: String(url),
       lyric: lyricData?.data?.lyric ? String(lyricData.data.lyric) : undefined,
       cover: cover || undefined,
@@ -206,7 +207,28 @@ export class NetEaseProvider implements MusicProvider {
     return null;
   }
 
-  /** Account recommendations (Personal FM), not a shuffle of local favorites. */
+  /** Add the song to the authenticated account; never toggle an existing like off. */
+  async likeSong(id: string): Promise<void> {
+    if (!this.workerURL || !this.cookie) throw new Error('请先配置网易云 Cookie 和新版 Worker');
+    if (!/^\d+$/.test(id)) throw new Error('当前歌曲没有有效的网易云 ID');
+    const response = await fetch(`${this.workerURL}/like`, {
+      method: 'POST',
+      headers: {
+        'X-Netease-Cookie': this.cookie,
+        'X-Netease-Params': eapiEncrypt('/api/radio/like', {
+          alg: 'itembased', trackId: id, like: true, time: '3',
+        }),
+      },
+      signal: AbortSignal.timeout(15000),
+      cache: 'no-store',
+    });
+    if (response.status === 404) throw new Error('当前 Worker 不支持喜欢歌曲，请更新部署后重试');
+    if (response.status === 401) throw new Error('网易云登录已失效，请更新 Cookie');
+    if (!response.ok) throw new Error('添加喜欢未成功，请稍后重试');
+    const result = await response.json();
+    if (result.success !== true) throw new Error('网易云未确认添加喜欢，请稍后重试');
+  }
+
   async fetchPersonalFM(): Promise<SearchResult[]> {
     if (!this.workerURL || !this.cookie) throw new Error('请先配置网易云 Cookie 和新版 Worker');
     const response = await fetch(`${this.workerURL}/personal-fm`, {

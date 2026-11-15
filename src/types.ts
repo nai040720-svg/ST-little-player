@@ -18,6 +18,7 @@ export interface SearchResult {
 }
 
 export interface ResolvedTrack {
+  providerTrackId?: string;
   url: string;
   lyric?: string;
   cover?: string;

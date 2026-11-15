@@ -301,6 +301,20 @@ async function handlePlaylistDetail(request: Request): Promise<Response> {
   });
 }
 
+async function handleLike(request: Request): Promise<Response> {
+  const token = request.headers.get('X-Netease-Cookie');
+  const params = request.headers.get('X-Netease-Params');
+  if (!token) return errorResponse('Login required', 401);
+  if (!params) return errorResponse('Missing encrypted params', 400);
+  const data = await neteasePost(
+    'https://interface3.music.163.com/eapi/radio/like',
+    `params=${encodeURIComponent(params)}`, buildCookie(token),
+  );
+  if (data?.code === 301 || data?.code === 401) return errorResponse('Login expired', 401);
+  if (data?.code !== 200) return errorResponse('Like was not confirmed by NetEase', 502);
+  return json({ success: true });
+}
+
 async function handlePersonalFM(request: Request): Promise<Response> {
   const token = request.headers.get('X-Netease-Cookie');
   const params = request.headers.get('X-Netease-Params');
@@ -328,6 +342,8 @@ async function handleRequest(request: Request): Promise<Response> {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders() });
   }
+
+  if (path === '/like' && request.method === 'POST') return await handleLike(request);
 
   if (path === '/personal-fm' && request.method === 'GET') return await handlePersonalFM(request);
 

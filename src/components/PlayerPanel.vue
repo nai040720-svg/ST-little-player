@@ -4,6 +4,7 @@ import { usePlayerStore, usePlaylistStore, useSettingsStore } from '@/stores/ind
 import { useVerticalLyricScroll } from "@/composables/useVerticalLyricScroll";
 import type { PlayMode } from '@/types';
 import Icon from './Icon.vue';
+import HeartButton from './HeartButton.vue';
 import PlaylistView from './PlaylistView.vue';
 import PlaylistDetail from './PlaylistDetail.vue';
 import SearchView from './SearchView.vue';
@@ -202,6 +203,8 @@ function playEntirePlaylist(): void {
       </div>
     </div>
 
+    <HeartButton />
+
     <!-- Progress -->
     <div class="stmp-progress">
       <input
@@ -235,7 +238,7 @@ function playEntirePlaylist(): void {
       </div>
 
       <!-- Left cluster -->
-      <button class="stmp-ctrl-btn" :disabled="controlsDisabled" :aria-label="t('Toggle play mode')" @click="cyclePlayMode">
+      <button class="stmp-ctrl-btn" :disabled="controlsDisabled || playlistStore.heartActive" :aria-label="t('Toggle play mode')" @click="cyclePlayMode">
         <Icon :name="playModeIcon[settingsStore.settings.playMode]" :size="16" />
       </button>
       <button class="stmp-ctrl-btn" :disabled="controlsDisabled" :aria-label="t('Previous')" @click="playlistStore.prev()">

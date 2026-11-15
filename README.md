@@ -1,3 +1,5 @@
+> 本 Fork 新增账号心动推荐（私人 FM）。需要部署新版 Worker，使用方法与验证范围见 [HEARTBEAT.md](HEARTBEAT.md)。
+
 # 晓乐 (ST-Little-Player)
 
 English | [简体中文](./README.zh-CN.md)

@@ -139,6 +139,13 @@ function ensureFixedPlaylists(playlists: Playlist[]): Playlist[] {
 
 export const usePlaylistStore = defineStore('playlist', {
   state: () => ({
+    heartActive: false,
+    heartLoading: false,
+    heartError: '',
+    heartGeneration: 0,
+    heartNextBusy: false,
+    savedQueue: null as PlayQueue | null,
+    playRequest: 0,
     playlists: [] as Playlist[],
     queue: { items: [], currentIndex: -1 } as PlayQueue,
     activeTab: 'queue' as OverlayTab,
@@ -183,6 +190,92 @@ export const usePlaylistStore = defineStore('playlist', {
   },
 
   actions: {
+    async toggleHeart(): Promise<void> {
+      if (this.heartActive || this.heartLoading) {
+        this.stopHeart(true);
+        return;
+      }
+      this.savedQueue = { ...this.queue, items: this.queue.items.slice() };
+      this.heartActive = true;
+      this.heartError = '';
+      this.queue = { items: [], currentIndex: -1 };
+      const generation = ++this.heartGeneration;
+      ++this.playRequest;
+      const ok = await this.fillHeart();
+      if (generation !== this.heartGeneration) return;
+      if (!ok) { this.stopHeart(false); return; }
+      this.activeTab = 'queue';
+      await this.nextHeart();
+    },
+
+    stopHeart(resume = false): void {
+      if (!this.heartActive && !this.heartLoading) return;
+      ++this.heartGeneration;
+      ++this.playRequest;
+      this.heartActive = false;
+      this.heartLoading = false;
+      this.heartNextBusy = false;
+      if (this.savedQueue) this.queue = this.savedQueue;
+      this.savedQueue = null;
+      if (resume) {
+        usePlayerStore().pause();
+        if (this.queue.currentIndex >= 0) void this.resolveAndPlay(this.queue.currentIndex);
+      }
+    },
+
+    async fillHeart(): Promise<boolean> {
+      if (!this.heartActive || this.heartLoading) return false;
+      const generation = this.heartGeneration;
+      this.heartLoading = true;
+      this.heartError = '';
+      try {
+        const settings = useSettingsStore().settings;
+        const provider = new NetEaseProvider({ workerURL: getNeteaseWorkerURL(settings), cookie: settings.neteaseCookie });
+        const songs = await provider.fetchPersonalFM();
+        if (generation !== this.heartGeneration) return false;
+        const seen = new Set(this.queue.items.map(s => s.providerTrackId));
+        const fresh = songs.filter(s => { if (seen.has(s.id)) return false; seen.add(s.id); return true; });
+        if (!fresh.length) throw new Error('暂时没有新的推荐，请点击下一首重试');
+        // Keep a bounded recent history for back navigation and deduplication.
+        if (this.queue.currentIndex > 100) {
+          const trim = this.queue.currentIndex - 100;
+          this.queue.items.splice(0, trim);
+          this.queue.currentIndex -= trim;
+        }
+        this.queue.items.push(...fresh.map(s => ({
+          id: genId(), song: s.name, artist: s.artist, source: 'network' as const,
+          providerId: 'netease', providerTrackId: s.id, providerPicId: s.picId, addedAt: Date.now(),
+        })));
+        return true;
+      } catch (error) {
+        if (generation === this.heartGeneration) this.heartError = error instanceof Error ? error.message : '推荐加载失败';
+        return false;
+      } finally {
+        if (generation === this.heartGeneration) this.heartLoading = false;
+      }
+    },
+
+    async nextHeart(): Promise<void> {
+      if (this.heartNextBusy || this.heartLoading) return;
+      const generation = this.heartGeneration;
+      this.heartNextBusy = true;
+      try {
+        // Bound retries so unavailable tracks cannot cause an infinite request loop.
+        for (let attempt = 0; attempt < 5 && this.heartActive; attempt++) {
+          if (this.queue.currentIndex + 1 >= this.queue.items.length && !await this.fillHeart()) return;
+          if (generation !== this.heartGeneration) return;
+          this.queue.currentIndex++;
+          if (await this.resolveAndPlay(this.queue.currentIndex)) {
+            return;
+          }
+          if (generation !== this.heartGeneration) return;
+        }
+        this.heartError = '连续多首歌曲无法播放，请稍后重试';
+      } finally {
+        if (generation === this.heartGeneration) this.heartNextBusy = false;
+      }
+    },
+
     init(): void {
       this.loadFromStorage();
     },
@@ -219,7 +312,7 @@ export const usePlaylistStore = defineStore('playlist', {
       if (!storage) return;
       const data: PlaylistPersistData = {
         playlists: this.playlists,
-        queue: this.queue,
+        queue: this.savedQueue ?? this.queue,
         version: 2,
       };
       storage.setPlaylistData(data);
@@ -272,6 +365,7 @@ export const usePlaylistStore = defineStore('playlist', {
     playPlaylist(playlistId: string, startIndex: number = 0): void {
       const pl = this.getPlaylist(playlistId);
       if (!pl || pl.songs.length === 0) return;
+      this.stopHeart();
       this.queue = {
         items: pl.songs.slice(),
         currentIndex: Math.max(0, Math.min(startIndex, pl.songs.length - 1)),
@@ -287,6 +381,7 @@ export const usePlaylistStore = defineStore('playlist', {
     },
 
     playQueueIndex(index: number): void {
+      if (this.heartNextBusy) return;
       if (index < 0 || index >= this.queue.items.length) return;
       this.queue.currentIndex = index;
       this.savePlaylistData();
@@ -294,6 +389,8 @@ export const usePlaylistStore = defineStore('playlist', {
     },
 
     removeFromQueue(index: number): void {
+      if (this.heartNextBusy) return;
+      ++this.playRequest;
       if (index < 0 || index >= this.queue.items.length) return;
       this.queue.items.splice(index, 1);
       if (this.queue.currentIndex === index) {
@@ -305,6 +402,8 @@ export const usePlaylistStore = defineStore('playlist', {
     },
 
     clearQueue(): void {
+      this.stopHeart();
+      ++this.playRequest;
       this.queue = { items: [], currentIndex: -1 };
       this.savePlaylistData();
     },
@@ -314,6 +413,7 @@ export const usePlaylistStore = defineStore('playlist', {
     peekNextIndex(): number {
       const list = this.queue.items;
       if (list.length === 0) return -1;
+      if (this.heartActive) return this.queue.currentIndex + 1 < list.length ? this.queue.currentIndex + 1 : -1;
       const mode = this.playMode;
       const cur = this.queue.currentIndex;
       if (mode === 'single') return cur;
@@ -331,6 +431,7 @@ export const usePlaylistStore = defineStore('playlist', {
     },
 
     next(): void {
+      if (this.heartActive) { void this.nextHeart(); return; }
       const list = this.queue.items;
       if (list.length === 0) return;
       const mode = this.playMode;
@@ -362,6 +463,7 @@ export const usePlaylistStore = defineStore('playlist', {
     },
 
     prev(): void {
+      if (this.heartActive && (this.heartNextBusy || this.queue.currentIndex <= 0)) return;
       const list = this.queue.items;
       if (list.length === 0) return;
       let newIndex = this.queue.currentIndex - 1;
@@ -392,9 +494,10 @@ export const usePlaylistStore = defineStore('playlist', {
       return null;
     },
 
-    async resolveAndPlay(index: number): Promise<void> {
+    async resolveAndPlay(index: number): Promise<boolean> {
+      const request = ++this.playRequest;
       const item = this.queue.items[index];
-      if (!item) return;
+      if (!item) return false;
 
       let resolved: ResolvedTrack | null = null;
 
@@ -409,6 +512,7 @@ export const usePlaylistStore = defineStore('playlist', {
         }
       }
 
+      if (request !== this.playRequest || this.queue.items[index] !== item) return false;
       if (!resolved) {
         const settingsStore = useSettingsStore();
         const status = settingsStore.neteaseStatus;
@@ -428,16 +532,22 @@ export const usePlaylistStore = defineStore('playlist', {
         if (typeof toastr !== 'undefined') {
           toastr.warning(msg, '晓乐');
         }
-        return;
+        return false;
       }
 
       const playerStore = usePlayerStore();
-      await playerStore.loadAndPlay(resolved);
+      try {
+        await playerStore.loadAndPlay(resolved);
+        return true;
+      } catch {
+        return false;
+      }
     },
 
     // ===== 搜索结果 =====
 
     addFromSearch(result: SearchResult, autoplay: boolean = true): void {
+      if (autoplay) this.stopHeart();
       const item: PlaylistItem = {
         id: genId(),
         song: result.name,
@@ -465,6 +575,7 @@ export const usePlaylistStore = defineStore('playlist', {
     // ===== AI 选曲 =====
 
     addFromAi(result: SearchResult, autoplay: boolean = true): void {
+      if (this.heartActive) autoplay = false;
       const item: PlaylistItem = {
         id: genId(),
         song: result.name,
@@ -497,6 +608,7 @@ export const usePlaylistStore = defineStore('playlist', {
         serverPath,
         addedAt: Date.now(),
       };
+      this.stopHeart();
       this.addToPlaylist(UPLOAD_PLAYLIST_ID, item);
       this.queue = {
         items: [item],

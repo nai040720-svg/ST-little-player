@@ -39,7 +39,7 @@ export const usePlayerStore = defineStore('player', {
 
         if (playerStore.duration > 0) {
           const remaining = playerStore.duration - playerStore.currentTime;
-          if (remaining < 15 && remaining > 0 && playerStore.preloadedIndex === -1) {
+          if (!usePlaylistStore().heartActive && remaining < 15 && remaining > 0 && playerStore.preloadedIndex === -1) {
             const playlistStore = usePlaylistStore();
             const nextIdx = playlistStore.peekNextIndex();
             if (nextIdx >= 0 && nextIdx !== playlistStore.queue.currentIndex) {

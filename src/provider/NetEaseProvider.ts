@@ -206,6 +206,28 @@ export class NetEaseProvider implements MusicProvider {
     return null;
   }
 
+  /** Account recommendations (Personal FM), not a shuffle of local favorites. */
+  async fetchPersonalFM(): Promise<SearchResult[]> {
+    if (!this.workerURL || !this.cookie) throw new Error('请先配置网易云 Cookie 和新版 Worker');
+    const response = await fetch(`${this.workerURL}/personal-fm`, {
+      headers: {
+        'X-Netease-Cookie': this.cookie,
+        'X-Netease-Params': eapiEncrypt('/api/v1/radio/get', {}),
+      },
+      signal: AbortSignal.timeout(15000),
+      cache: 'no-store',
+    });
+    if (response.status === 404) throw new Error('当前 Worker 不支持心动推荐，请部署本仓库新版 Worker 并选择自建模式');
+    if (response.status === 401) throw new Error('网易云登录已失效，请更新 Cookie');
+    if (!response.ok) throw new Error('心动推荐请求失败，请稍后重试');
+    const result = await response.json();
+    if (!result.success || !Array.isArray(result.data)) throw new Error('心动推荐响应无效');
+    return result.data.filter((song: any) => song.id && song.name).map((song: any) => ({
+      id: String(song.id), name: String(song.name), artist: String(song.artist ?? ''),
+      duration: song.duration, picId: song.picId, provider: this.id,
+    }));
+  }
+
   async fetchPlaylists(): Promise<NetEasePlaylistSummary[] | null> {
     if (!this.workerURL || !this.cookie) {
       logger.warn('NetEase: worker URL or cookie not configured for fetchPlaylists');

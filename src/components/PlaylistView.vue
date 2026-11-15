@@ -4,6 +4,7 @@ import { usePlaylistStore, useSettingsStore } from '@/stores/index';
 import type { Playlist, PlaylistItem } from '@/types';
 import type { OverlayTab } from '@/stores/playlist';
 import Icon from './Icon.vue';
+import HeartButton from './HeartButton.vue';
 import { t } from '@/i18n';
 import { logger } from '@/utils/logger';
 
@@ -185,6 +186,7 @@ function isNeteaseNotSynced(pl: Playlist): boolean {
         </div>
 
         <!-- 网易云歌单分类 -->
+        <HeartButton />
         <div class="stmp-section-header stmp-section-header-netease">
           <span class="stmp-section-title">{{ t('NetEase Playlists') }}</span>
           <button

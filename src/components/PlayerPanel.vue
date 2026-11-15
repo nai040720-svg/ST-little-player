@@ -163,6 +163,8 @@ function playEntirePlaylist(): void {
       </button>
     </div>
 
+    <div v-if="playlistStore.heartError" class="stmp-heart-error" role="status">{{ playlistStore.heartError }}</div>
+
     <!-- Display area: cover mode and lyric mode stacked in grid -->
     <div class="stmp-display" @click="viewMode = viewMode === 'cover' ? 'lyric' : 'cover'">
       <!-- Cover mode: large cover + track name + artist -->
@@ -296,8 +298,6 @@ function playEntirePlaylist(): void {
       </div>
     </div>
 
-    <div v-if="playlistStore.heartError" class="stmp-heart-error" role="status">{{ playlistStore.heartError }}</div>
-
     <!-- Overlay panel: slide up from bottom -->
     <Transition name="stmp-overlay">
       <div v-if="activeOverlay" class="stmp-overlay">
@@ -344,7 +344,18 @@ function playEntirePlaylist(): void {
   width: 100%;
 }
 
-.stmp-heart-error { font-size: 12px; color: var(--stmp-text-dim); overflow-wrap: anywhere; }
+.stmp-heart-error {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--stmp-border);
+  border-radius: 8px;
+  background: var(--stmp-bg);
+  color: var(--stmp-text);
+  font-size: calc(var(--mainFontSize, 14px) * 0.85);
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 
 /* Top bar: just a drag handle strip with collapse button */
 .stmp-topbar {

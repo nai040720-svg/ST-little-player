@@ -8335,14 +8335,14 @@ const xf = ["width", "height"], Sf = {
       ]))
     ]));
   }
-}), dp = /* @__PURE__ */ wt(up, [["__scopeId", "data-v-563c4b59"]]), fp = { class: "stmp-panel" }, hp = { class: "stmp-topbar stmp-drag-handle" }, pp = ["aria-label"], gp = { class: "stmp-cover-large" }, mp = ["src"], yp = {
-  key: 1,
-  class: "stmp-cover-placeholder"
-}, vp = { class: "stmp-track-name" }, _p = { class: "stmp-track-artist" }, wp = { class: "stmp-lyric-header" }, bp = { class: "stmp-track-name" }, kp = { class: "stmp-track-artist" }, xp = { class: "stmp-progress" }, Sp = ["value"], Cp = { class: "stmp-time" }, Ap = { class: "stmp-controls" }, Tp = { class: "stmp-ctrl-side stmp-search-side" }, Pp = ["disabled", "aria-label"], Mp = ["disabled", "aria-label"], Ep = ["disabled", "aria-label"], Ip = ["disabled", "aria-label"], Rp = ["disabled", "aria-label"], $p = ["aria-label"], Op = { class: "stmp-ctrl-side stmp-volume-side" }, Lp = ["aria-label"], Np = ["value"], Dp = {
+}), dp = /* @__PURE__ */ wt(up, [["__scopeId", "data-v-563c4b59"]]), fp = { class: "stmp-panel" }, hp = { class: "stmp-topbar stmp-drag-handle" }, pp = ["aria-label"], gp = {
   key: 0,
   class: "stmp-heart-error",
   role: "status"
-}, Fp = {
+}, mp = { class: "stmp-cover-large" }, yp = ["src"], vp = {
+  key: 1,
+  class: "stmp-cover-placeholder"
+}, _p = { class: "stmp-track-name" }, wp = { class: "stmp-track-artist" }, bp = { class: "stmp-lyric-header" }, kp = { class: "stmp-track-name" }, xp = { class: "stmp-track-artist" }, Sp = { class: "stmp-progress" }, Cp = ["value"], Ap = { class: "stmp-time" }, Tp = { class: "stmp-controls" }, Pp = { class: "stmp-ctrl-side stmp-search-side" }, Mp = ["disabled", "aria-label"], Ep = ["disabled", "aria-label"], Ip = ["disabled", "aria-label"], Rp = ["disabled", "aria-label"], $p = ["disabled", "aria-label"], Op = ["aria-label"], Lp = { class: "stmp-ctrl-side stmp-volume-side" }, Np = ["aria-label"], Dp = ["value"], Fp = {
   key: 0,
   class: "stmp-overlay"
 }, Up = { class: "stmp-overlay-header" }, Bp = { class: "stmp-overlay-title" }, Hp = ["aria-label"], Vp = { class: "stmp-overlay-body" }, jp = {
@@ -8438,6 +8438,7 @@ const xf = ["width", "height"], Sf = {
           }, null, 8, ["name"])
         ], 8, pp)
       ]),
+      h(s).heartError ? (C(), P("div", gp, M(h(s).heartError), 1)) : we("", !0),
       u("div", {
         class: "stmp-display",
         onClick: te[1] || (te[1] = (he) => o.value = o.value === "cover" ? "lyric" : "cover")
@@ -8445,28 +8446,28 @@ const xf = ["width", "height"], Sf = {
         u("div", {
           class: de(["stmp-cover-mode", { hidden: o.value !== "cover" }])
         }, [
-          u("div", gp, [
+          u("div", mp, [
             p.value && !a.value ? (C(), P("img", {
               key: 0,
               src: p.value,
               alt: "cover",
               onError: G
-            }, null, 40, mp)) : (C(), P("div", yp, [
+            }, null, 40, yp)) : (C(), P("div", vp, [
               Z(Se, {
                 name: "music",
                 size: 48
               })
             ]))
           ]),
-          u("div", vp, M(h(t).currentTrack?.name || E.value), 1),
-          u("div", _p, M((h(t).currentTrack?.artist || "").trim() || " "), 1)
+          u("div", _p, M(h(t).currentTrack?.name || E.value), 1),
+          u("div", wp, M((h(t).currentTrack?.artist || "").trim() || " "), 1)
         ], 2),
         u("div", {
           class: de(["stmp-lyric-mode", { hidden: o.value !== "lyric" }])
         }, [
-          u("div", wp, [
-            u("div", bp, M(h(t).currentTrack?.name || E.value), 1),
-            u("div", kp, M((h(t).currentTrack?.artist || "").trim() || " "), 1)
+          u("div", bp, [
+            u("div", kp, M(h(t).currentTrack?.name || E.value), 1),
+            u("div", xp, M((h(t).currentTrack?.artist || "").trim() || " "), 1)
           ]),
           u("div", {
             ref_key: "lyricWindowRef",
@@ -8488,7 +8489,7 @@ const xf = ["width", "height"], Sf = {
           ], 512)
         ], 2)
       ]),
-      u("div", xp, [
+      u("div", Sp, [
         u("input", {
           type: "range",
           min: "0",
@@ -8497,14 +8498,14 @@ const xf = ["width", "height"], Sf = {
           value: Y.value,
           class: "stmp-range",
           onInput: y
-        }, null, 40, Sp),
-        u("div", Cp, [
+        }, null, 40, Cp),
+        u("div", Ap, [
           u("span", null, M(S(h(t).currentTime)), 1),
           u("span", null, M(S(h(t).duration)), 1)
         ])
       ]),
-      u("div", Ap, [
-        u("div", Tp, [
+      u("div", Tp, [
+        u("div", Pp, [
           u("button", {
             class: de(["stmp-ctrl-btn", { active: r.value === "search" }]),
             disabled: k.value !== "ok",
@@ -8515,7 +8516,7 @@ const xf = ["width", "height"], Sf = {
               name: "search",
               size: 18
             })
-          ], 10, Pp),
+          ], 10, Mp),
           Z(Pl, { compact: "" })
         ]),
         u("button", {
@@ -8528,7 +8529,7 @@ const xf = ["width", "height"], Sf = {
             name: x[h(n).settings.playMode],
             size: 16
           }, null, 8, ["name"])
-        ], 8, Mp),
+        ], 8, Ep),
         u("button", {
           class: "stmp-ctrl-btn",
           disabled: T.value,
@@ -8539,7 +8540,7 @@ const xf = ["width", "height"], Sf = {
             name: "prev",
             size: 18
           })
-        ], 8, Ep),
+        ], 8, Ip),
         u("button", {
           class: "stmp-ctrl-btn stmp-play-btn",
           disabled: T.value,
@@ -8550,7 +8551,7 @@ const xf = ["width", "height"], Sf = {
             name: h(t).isPlaying ? "pause" : "play",
             size: 24
           }, null, 8, ["name"])
-        ], 8, Ip),
+        ], 8, Rp),
         u("button", {
           class: "stmp-ctrl-btn",
           disabled: T.value,
@@ -8561,7 +8562,7 @@ const xf = ["width", "height"], Sf = {
             name: "next",
             size: 18
           })
-        ], 8, Rp),
+        ], 8, $p),
         u("button", {
           class: de(["stmp-ctrl-btn", { active: r.value === "list" }]),
           "aria-label": h(g)("Playlist"),
@@ -8571,8 +8572,8 @@ const xf = ["width", "height"], Sf = {
             name: "list",
             size: 16
           })
-        ], 10, $p),
-        u("div", Op, [
+        ], 10, Op),
+        u("div", Lp, [
           u("div", {
             class: "stmp-volume-container",
             onMouseenter: ee,
@@ -8587,7 +8588,7 @@ const xf = ["width", "height"], Sf = {
                 name: h(t).volume === 0 ? "volume-mute" : "volume",
                 size: 18
               }, null, 8, ["name"])
-            ], 8, Lp),
+            ], 8, Np),
             u("div", {
               class: de(["stmp-volume-popup", { show: l.value }])
             }, [
@@ -8599,12 +8600,11 @@ const xf = ["width", "height"], Sf = {
                 class: "stmp-volume-vertical",
                 orient: "vertical",
                 onInput: R
-              }, null, 40, Np)
+              }, null, 40, Dp)
             ], 2)
           ], 32)
         ])
       ]),
-      h(s).heartError ? (C(), P("div", Dp, M(h(s).heartError), 1)) : we("", !0),
       Z(Zo, { name: "stmp-overlay" }, {
         default: Ui(() => [
           r.value ? (C(), P("div", Fp, [
@@ -8661,7 +8661,7 @@ const xf = ["width", "height"], Sf = {
       })
     ]));
   }
-}), Pr = /* @__PURE__ */ wt(Gp, [["__scopeId", "data-v-73e39c78"]]), Kp = {
+}), Pr = /* @__PURE__ */ wt(Gp, [["__scopeId", "data-v-9d15f957"]]), Kp = {
   key: 1,
   class: "stmp-inline-expanded"
 }, Mr = 3, Yp = 500, Jp = /* @__PURE__ */ _t({

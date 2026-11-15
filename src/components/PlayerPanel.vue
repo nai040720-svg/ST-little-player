@@ -203,8 +203,6 @@ function playEntirePlaylist(): void {
       </div>
     </div>
 
-    <HeartButton />
-
     <!-- Progress -->
     <div class="stmp-progress">
       <input
@@ -235,6 +233,7 @@ function playEntirePlaylist(): void {
         >
           <Icon name="search" :size="18" />
         </button>
+        <HeartButton compact />
       </div>
 
       <!-- Left cluster -->
@@ -297,6 +296,8 @@ function playEntirePlaylist(): void {
       </div>
     </div>
 
+    <div v-if="playlistStore.heartError" class="stmp-heart-error" role="status">{{ playlistStore.heartError }}</div>
+
     <!-- Overlay panel: slide up from bottom -->
     <Transition name="stmp-overlay">
       <div v-if="activeOverlay" class="stmp-overlay">
@@ -342,6 +343,8 @@ function playEntirePlaylist(): void {
   gap: 8px;
   width: 100%;
 }
+
+.stmp-heart-error { font-size: 12px; color: var(--stmp-text-dim); overflow-wrap: anywhere; }
 
 /* Top bar: just a drag handle strip with collapse button */
 .stmp-topbar {
